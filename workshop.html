@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>조이풀 클래스 - 바이브코딩 해보기</title>
+<style>
+  :root{
+    --bg:#faf8f5;
+    --paper:#ffffff;
+    --ink:#1a1a1a;
+    --muted:#6b6660;
+    --line:#e8e3dc;
+    --accent:#c2410c;
+    --accent-soft:#fef3ec;
+    --teacher:#1e40af;
+    --teacher-soft:#eff4ff;
+    --warn:#92400e;
+    --warn-soft:#fef9e7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif;
+    font-size:18px; line-height:1.7;}
+  a{color:var(--accent);text-decoration:none}
+
+  .layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+  nav.side{
+    position:sticky;top:0;height:100vh;overflow-y:auto;
+    background:var(--paper);border-right:1px solid var(--line);padding:24px 18px;
+  }
+  nav.side h1{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
+  nav.side .sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+  nav.side ul{list-style:none;padding:0;margin:0}
+  nav.side li{margin:2px 0}
+  nav.side a{
+    display:block;padding:10px 12px;border-radius:8px;color:var(--ink);font-size:15px;
+    border-left:3px solid transparent;
+  }
+  nav.side a:hover{background:var(--accent-soft)}
+  nav.side a.active{background:var(--accent-soft);border-left-color:var(--accent);color:var(--accent);font-weight:600}
+  nav.side .time{display:inline-block;width:60px;color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+  nav.side .divider{height:1px;background:var(--line);margin:14px 4px}
+
+  main{padding:48px 64px 120px;max-width:920px}
+
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:32px;gap:16px;
+  }
+  .toggle{
+    display:flex;align-items:center;gap:10px;
+    background:var(--paper);border:1px solid var(--line);border-radius:999px;
+    padding:8px 16px;cursor:pointer;font-size:14px;user-select:none;
+  }
+  .toggle input{accent-color:var(--teacher);width:16px;height:16px;cursor:pointer}
+  .toggle.on{background:var(--teacher-soft);border-color:var(--teacher);color:var(--teacher);font-weight:600}
+
+  section.block{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:36px 44px;margin-bottom:28px;
+  }
+  section.block h2{
+    margin:0 0 6px;font-size:28px;letter-spacing:-.02em;
+  }
+  section.block .meta{
+    display:inline-block;font-size:13px;color:var(--muted);
+    background:var(--accent-soft);color:var(--accent);
+    padding:4px 10px;border-radius:6px;margin-bottom:18px;font-weight:600;
+  }
+  section.block h3{font-size:18px;margin:24px 0 10px}
+  section.block ul,section.block ol{padding-left:22px}
+  section.block li{margin:6px 0}
+  section.block p{margin:10px 0}
+
+  blockquote{
+    margin:14px 0;padding:14px 18px;
+    background:var(--accent-soft);border-left:4px solid var(--accent);
+    border-radius:6px;font-size:17px;
+  }
+  blockquote p{margin:0}
+
+  code{
+    background:#f1ede6;padding:2px 7px;border-radius:5px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;
+  }
+  pre{
+    background:#1a1a1a;color:#f1ede6;padding:18px 20px;border-radius:10px;
+    overflow-x:auto;font-size:14px;line-height:1.6;
+  }
+  pre code{background:transparent;color:inherit;padding:0}
+
+  .teacher{
+    display:none;
+    background:var(--teacher-soft);border:1px solid #c7d6fc;border-radius:10px;
+    padding:18px 22px;margin:14px 0;
+  }
+  .teacher::before{
+    content:"강사 전용";display:inline-block;background:var(--teacher);color:#fff;
+    padding:3px 10px;border-radius:5px;font-size:12px;font-weight:700;margin-bottom:10px;
+  }
+  body.teacher-mode .teacher{display:block}
+
+  .warn{
+    background:var(--warn-soft);border-left:4px solid var(--warn);
+    padding:12px 16px;border-radius:6px;margin:14px 0;font-size:15px;color:var(--warn);
+  }
+  .warn strong{color:var(--warn)}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:15px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f7f3ec;font-weight:600}
+
+  .tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--line)}
+  .tabs button{
+    background:transparent;border:none;padding:12px 20px;font-size:16px;
+    cursor:pointer;color:var(--muted);font-weight:600;border-bottom:3px solid transparent;
+    margin-bottom:-2px;font-family:inherit;
+  }
+  .tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  .checklist{list-style:none;padding-left:0}
+  .checklist li{position:relative;padding-left:32px;margin:8px 0}
+  .checklist li::before{
+    content:"";position:absolute;left:0;top:8px;width:18px;height:18px;
+    border:2px solid var(--line);border-radius:4px;background:#fff;
+  }
+
+  .footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:14px;text-align:center}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    nav.side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    main{padding:24px}
+    section.block{padding:24px 22px}
+  }
+
+  @media print{
+    nav.side,.topbar,.tabs{display:none}
+    body.teacher-mode .teacher{display:block}
+    .layout{grid-template-columns:1fr}
+    section.block{break-inside:avoid;border:none;padding:0;margin-bottom:30px}
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <nav class="side">
+    <h1>조이풀 클래스</h1>
+    <div class="sub">바이브코딩 해보기 · 3시간</div>
+    <ul>
+      <li><a href="#overview"><span class="time">0–</span>한눈에 보기</a></li>
+      <div class="divider"></div>
+      <li><a href="#opening"><span class="time">0–15</span>오프닝</a></li>
+      <li><a href="#devbasics"><span class="time">15–30</span>개발 기초</a></li>
+      <li><a href="#intro"><span class="time">30–50</span>Claude Code란?</a></li>
+      <li><a href="#install"><span class="time">50–80</span>설치 + Hello World</a></li>
+      <li><a href="#break1"><span class="time">80–90</span>휴식</a></li>
+      <li><a href="#harness"><span class="time">90–110</span>하네스 엔지니어링</a></li>
+      <li><a href="#practice"><span class="time">110–160</span>자기 프로젝트 실습</a></li>
+      <li><a href="#closing"><span class="time">160–180</span>공유 + 마무리</a></li>
+      <div class="divider"></div>
+      <li><a href="#trouble"><span class="time">📋</span>트러블슈팅 (윈도우)</a></li>
+      <li><a href="#handout"><span class="time">📄</span>핸드아웃</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="topbar">
+      <div style="font-size:14px;color:var(--muted)">조이풀 클래스 · 같이 보면서 진행하는 가이드</div>
+      <label class="toggle" id="teacherToggle">
+        <input type="checkbox" id="teacherCheck">
+        <span>강사 모드</span>
+      </label>
+    </div>
+
+    <!-- 한눈에 보기 -->
+    <section class="block" id="overview">
+      <span class="meta">한눈에 보기</span>
+      <h2>오늘 우리가 함께 할 일</h2>
+      <p><strong>학습자</strong></p>
+      <ul>
+        <li><strong>작가님</strong> — 베스트셀러 작가, 자기 브랜드 팟캐스트 운영</li>
+        <li><strong>트레이너님</strong> — 1인 PT샵 운영, 회원 관리·프로그램 작성·콘텐츠 제작</li>
+      </ul>
+      <p><strong>오늘 끝나면 할 수 있는 것</strong></p>
+      <ol>
+        <li>Claude Code가 무엇인지 한 문장으로 설명할 수 있다</li>
+        <li>내 노트북에서 Claude Code로 내 일과 관련된 작업 한 가지를 시켜본 경험이 있다</li>
+        <li>"하네스"를 내 언어로 설명하고, 내 일에 적용할 첫 아이디어를 가지고 돌아간다</li>
+      </ol>
+      <p><strong>오늘의 약속 3가지</strong></p>
+      <blockquote>
+        <p>1. 정답 없습니다. 막히면 손드세요. 막힌 게 가장 좋은 학습 순간입니다.<br>
+        2. 오늘 코드 한 줄도 직접 안 쓸 수도 있어요. 그게 이 도구의 핵심입니다.<br>
+        3. 오늘 끝나고 자기 일에 쓸 수 있는 작은 거 하나 만들어 가는 게 목표입니다.</p>
+      </blockquote>
+    </section>
+
+    <!-- 0-15 오프닝 -->
+    <section class="block" id="opening">
+      <span class="meta">0–15분 · 오프닝</span>
+      <h2>안녕하세요, 저도 비전공자입니다</h2>
+
+      <h3>아이스브레이커 질문</h3>
+      <blockquote>
+        <p>"요즘 일하면서 '아 이거 누가 대신 해줬으면 좋겠다' 싶은 일 한 가지만 말씀해주세요."</p>
+      </blockquote>
+      <p>이 답이 90분 후 실습 프로젝트의 씨앗이 됩니다.</p>
+
+      <div class="teacher">
+        <strong>진행 흐름</strong>
+        <ol>
+          <li>(3분) 환영 인사. <strong>"저도 비전공자입니다" 반드시 선언.</strong> 6개월 전 본인의 변화 1가지 짧게 공유.</li>
+          <li>(6분) 두 학습자 자기소개 + 위 질문. 답변을 화이트보드/노션에 받아 적는다.</li>
+          <li>(4분) 오늘의 약속 3가지 공유.</li>
+          <li>(2분) 오늘 타임라인 한 장으로 보여주기.</li>
+        </ol>
+        <p><strong>강사 멘트 예시:</strong></p>
+        <blockquote><p>"여러분, 이거 코딩 배우는 워크숍이 아니에요. 코딩을 안 하고도 컴퓨터한테 일을 시키는 법을 배우는 워크숍입니다. 저도 여전히 코드 못 짭니다. 근데 이거 배우고 나서 제 팟캐스트 대본 정리하는 데 쓰던 2시간이 10분이 됐어요."</p></blockquote>
+        <div class="warn"><strong>주의:</strong> "프로그래밍" "터미널" 같은 단어는 첫 15분 안에는 쓰지 말 것.</div>
+      </div>
+    </section>
+
+    <!-- 15-30 개발 기초 -->
+    <section class="block" id="devbasics">
+      <span class="meta">15–30분 · 개발 기초</span>
+      <h2>개발, 무서운 게 아닙니다</h2>
+
+      <blockquote>
+        <p>"코딩도 모르는데 이걸 어떻게 해요?" — 저도 처음에 똑같은 생각이었어요. 그런데 알고 보니, 알아야 할 건 생각보다 훨씬 적었습니다.</p>
+      </blockquote>
+
+      <h3>1. 터미널 = 컴퓨터에게 글자로 말하는 창</h3>
+      <p>여러분이 평소에 마우스로 폴더를 열고, 파일을 더블클릭하죠? <strong>터미널은 똑같은 일을 글자로 하는 것</strong>뿐입니다.</p>
+      <table>
+        <tr><th>마우스로 하면</th><th>터미널에 쓰면</th></tr>
+        <tr><td>바탕화면에 폴더 만들기</td><td><code>mkdir workshop</code></td></tr>
+        <tr><td>그 폴더 안으로 들어가기</td><td><code>cd workshop</code></td></tr>
+        <tr><td>파일 목록 보기</td><td><code>ls</code> (맥) / <code>dir</code> (윈도우)</td></tr>
+      </table>
+      <p>오늘 우리가 쓸 <strong>PowerShell</strong>이 바로 이 "터미널"입니다. 까만 창(또는 파란 창)이 무섭게 보여도, 그냥 컴퓨터랑 문자 주고받는 카톡방이라고 생각하세요.</p>
+
+      <h3>2. 코드 = 컴퓨터가 읽는 레시피</h3>
+      <p>요리 레시피처럼 <strong>"이 재료를 이 순서로 이렇게 해라"</strong>를 컴퓨터 언어로 적어둔 것이 코드예요.</p>
+      <blockquote>
+        <p>근데 이제 바이브코딩 시대에는? <strong>레시피를 우리가 직접 안 씁니다.</strong><br>
+        "이런 요리 만들어줘"라고 말하면 AI가 레시피를 써줍니다.</p>
+      </blockquote>
+
+      <h3>3. 웹사이트는 이렇게 돌아갑니다</h3>
+      <pre><code>내 컴퓨터 (브라우저)  ←→  인터넷  ←→  서버 (다른 컴퓨터)
+    "보여주는 쪽"                      "일하는 쪽"</code></pre>
+      <table>
+        <tr><th>용어</th><th>쉬운 말</th><th>비유</th></tr>
+        <tr>
+          <td><strong>프론트엔드</strong></td>
+          <td>눈에 보이는 화면</td>
+          <td>식당의 <strong>홀</strong> — 손님이 보는 메뉴판, 인테리어</td>
+        </tr>
+        <tr>
+          <td><strong>백엔드</strong></td>
+          <td>눈에 안 보이는 뒷단</td>
+          <td>식당의 <strong>주방</strong> — 주문 받고 요리하고 재고 관리</td>
+        </tr>
+        <tr>
+          <td><strong>서버</strong></td>
+          <td>24시간 켜져있는 컴퓨터</td>
+          <td>식당 <strong>건물 자체</strong> — 홀과 주방이 들어있는 곳</td>
+        </tr>
+        <tr>
+          <td><strong>배포</strong></td>
+          <td>만든 걸 인터넷에 올리기</td>
+          <td>식당 <strong>오픈</strong> — 손님이 찾아올 수 있게 문 여는 것</td>
+        </tr>
+      </table>
+
+      <h3>4. 파일과 폴더 — 이미 알고 계신 거예요</h3>
+      <p>코딩이라고 하면 뭔가 특별한 것 같지만, 결국 <strong>파일을 만들고 고치는 일</strong>입니다.</p>
+      <ul>
+        <li>웹사이트 = HTML 파일 + CSS 파일 + JavaScript 파일을 폴더에 넣은 것</li>
+        <li>앱 = 비슷한 파일들을 폰에서 돌아가게 묶은 것</li>
+        <li>우리가 워드 파일 만들 줄 알면, 원리는 같습니다</li>
+      </ul>
+
+      <h3>5. Git과 GitHub — 작업의 타임머신 + 공유 드라이브</h3>
+      <p>코딩을 하다 보면 "아까 그게 더 나았는데…" 하는 순간이 옵니다. 이런 문제를 해결해주는 프로그램이 있어요.</p>
+
+      <p><strong>Git, GitHub, 커밋 — 뭐가 뭔가요?</strong></p>
+      <table>
+        <tr><th>이름</th><th>정체</th><th>하는 일</th><th>비유</th></tr>
+        <tr>
+          <td><strong>Git</strong></td>
+          <td>내 컴퓨터에 설치하는 <strong>프로그램</strong></td>
+          <td>파일 변경 이력을 추적·관리</td>
+          <td>워드의 <strong>"변경 내용 추적"</strong> — 근데 훨씬 강력한 버전</td>
+        </tr>
+        <tr>
+          <td><strong>GitHub</strong></td>
+          <td>인터넷 <strong>웹사이트/서비스</strong> (github.com)</td>
+          <td>Git으로 관리한 파일을 클라우드에 올리고 공유</td>
+          <td>코드 전용 <strong>구글 드라이브</strong> — 누가 뭘 고쳤는지 다 보임</td>
+        </tr>
+        <tr>
+          <td><strong>커밋 (commit)</strong></td>
+          <td>Git 프로그램의 <strong>명령어 중 하나</strong></td>
+          <td>저장 + "여기까지 했음" 메모 남기기</td>
+          <td>게임의 <strong>세이브 포인트</strong></td>
+        </tr>
+      </table>
+
+      <p>흐름으로 보면 이렇습니다:</p>
+      <pre><code>Git (내 컴퓨터 프로그램)   →  세이브(커밋) 찍고 이력 관리
+        ↓ 올리기 (push)
+GitHub (인터넷 서비스)    →  백업 + 공유 + 공개</code></pre>
+
+      <p><strong>GitHub로 할 수 있는 일들:</strong></p>
+      <ul>
+        <li>내가 만든 코드를 <strong>안전하게 백업</strong> (노트북 고장나도 OK)</li>
+        <li>작업 이력을 보고 <strong>아무 시점으로 되돌리기</strong></li>
+        <li>만든 웹사이트를 GitHub에서 바로 <strong>무료로 공개</strong> (GitHub Pages)</li>
+        <li>다른 사람과 <strong>같은 프로젝트를 동시에</strong> 작업</li>
+        <li>전 세계 오픈소스 코드를 <strong>가져다 쓰기</strong></li>
+      </ul>
+
+      <p>오늘 당장 쓰진 않지만, 바이브코딩을 계속하면 자연스럽게 만나게 돼요. <strong>재밌는 건, Claude Code가 Git을 대신 써준다는 거예요.</strong> "이거 세이브해줘"라고 하면 알아서 커밋을 해줍니다. Git 명령어를 외울 필요는 전혀 없고, Claude가 "커밋할까요?" 하고 물어볼 때 <strong>"아 게임 세이브하겠다는 거구나"</strong> 하면 됩니다.</p>
+
+      <h3>6. 그래서 바이브코딩이란?</h3>
+      <blockquote>
+        <p><strong>"내가 코드를 쓰는 게 아니라, AI에게 내 의도를 말하면 AI가 코드를 쓴다."</strong></p>
+      </blockquote>
+      <p>위의 모든 개념 — 터미널, 코드, 서버, Git — 을 <strong>여러분이 다 알 필요는 없어요.</strong> AI가 알고 있거든요. 여러분은 <strong>"뭘 만들고 싶은지"만 알면 됩니다.</strong> 나머지는 Claude가 합니다.</p>
+
+      <p>오늘 이 6가지만 머릿속에 넣고 가면 충분합니다. 지금부터 실제로 해볼 거예요.</p>
+
+      <div class="teacher">
+        <strong>이 섹션의 핵심은 "두려움 제거"입니다</strong>
+        <ul>
+          <li>기술 용어를 가르치는 게 목적이 <strong>아닙니다.</strong> "아, 저것도 별거 아닌 거구나" 느끼게 하는 게 목적.</li>
+          <li>각 개념을 <strong>30초 이내</strong>로 설명. 깊이 들어가지 말 것.</li>
+          <li>학습자가 "그래서 코딩 배워야 하는 거 아니에요?"라고 물으면 → <strong>"아뇨, 오늘 코드 한 줄도 안 쓸 거예요. 이건 그냥 지도 보는 거예요. 지도를 보고 직접 운전하는 건 Claude가 합니다."</strong></li>
+          <li>강사 본인이 처음에 겁났던 경험을 솔직하게 공유하면 효과적: "저도 터미널이라는 단어만 들어도 도망가고 싶었어요"</li>
+        </ul>
+        <p><strong>진행 흐름 (15분)</strong></p>
+        <ol>
+          <li>(2분) "사실 저도 이런 거 하나도 몰랐어요" — 강사 경험담으로 시작</li>
+          <li>(10분) 6가지 개념을 화면 같이 보면서 빠르게 훑기. 각 항목 1-2분. Git/GitHub는 "오늘 안 쓰지만 곧 만날 거예요" 톤으로 가볍게.</li>
+          <li>(1분) "바이브코딩이란?" — 핵심 메시지 전달. "여러분은 뭘 만들고 싶은지만 알면 됩니다."</li>
+          <li>(2분) 질문. 보통 "진짜 코드 안 써도 돼요?" → "네, 진짜요. 지금부터 보여드릴게요."</li>
+        </ol>
+        <div class="warn"><strong>주의:</strong> 여기서 너무 오래 머물면 학습자가 "역시 어려운 거구나" 모드에 빠진다. 빠르고 가볍게, 핵심은 "이 정도면 충분하다"는 자신감 심어주기.</div>
+      </div>
+    </section>
+
+    <!-- 30-50 Claude Code란 -->
+    <section class="block" id="intro">
+      <span class="meta">30–50분 · Claude Code란?</span>
+      <h2>ChatGPT랑 뭐가 달라요?</h2>
+
+      <blockquote>
+        <p>ChatGPT가 채팅창에 답해주는 친구라면, <strong>Claude Code는 내 컴퓨터에 들어와서 직접 일을 해주는 친구</strong>예요. 파일을 만들고, 폴더를 정리하고, 글을 고치고, 자료를 모아옵니다.</p>
+      </blockquote>
+
+      <pre><code>ChatGPT       →  말로만 답함     →  복사 붙여넣기는 내가
+Claude Code   →  내 컴퓨터로 들어옴 →  파일·폴더를 직접 만짐</code></pre>
+
+      <h3>지금부터 보실 3가지</h3>
+      <ol>
+        <li><strong>Wow #1</strong> — 폴더와 파일을 자연어로 만들어보기</li>
+        <li><strong>Wow #2</strong> — 다운로드 폴더의 PDF들을 한 번에 정리하기</li>
+        <li><strong>Wow #3</strong> — 일부러 모호하게 시켜보기 ("이거 좀 정리해줘")</li>
+      </ol>
+
+      <div class="teacher">
+        <strong>라이브 시연 가이드</strong>
+        <table>
+          <tr><th>Wow</th><th>명령</th><th>포인트</th></tr>
+          <tr>
+            <td>#1 (5분)</td>
+            <td><code>"내 데스크탑에 'workshop' 폴더 만들고 그 안에 hello.txt 파일 만들어서 '안녕하세요'라고 써줘"</code></td>
+            <td>폴더가 진짜 생기는 걸 두 사람이 직접 보게 한다</td>
+          </tr>
+          <tr>
+            <td>#2 (5분)</td>
+            <td><code>"내 다운로드 폴더에 있는 PDF 파일들의 제목만 모아서 마크다운 표로 정리해줘"</code></td>
+            <td>여기서 "엇" 반응이 나옴</td>
+          </tr>
+          <tr>
+            <td>#3 (5분)</td>
+            <td><code>"이거 좀 정리해줘"</code></td>
+            <td>일부러 실패. Claude가 되묻는 모습 보여줌. 교훈: "Claude는 마법이 아니라 똑똑한 동료. 동료한테 지시하듯 구체적으로."</td>
+          </tr>
+        </table>
+        <p>(5분) Q&A. 보통 첫 질문은 "이거 돈 들어요?" — 솔직하게 답한다.</p>
+        <div class="warn"><strong>주의:</strong> 너무 화려한 거 보여주지 말 것. "나는 절대 못 해" 모드 들어가면 망친다. 일상적이고 작은 것 위주.</div>
+      </div>
+    </section>
+
+    <!-- 40-75 설치 -->
+    <section class="block" id="install">
+      <span class="meta">50–80분 · 설치 + Hello World</span>
+      <h2>이제 직접 해봅시다 (윈도우)</h2>
+
+      <h3>Step 1. Node.js 설치 (이미 되어있으면 건너뛰기)</h3>
+      <p>Claude Code를 쓰려면 먼저 Node.js라는 프로그램이 필요합니다. 한 번만 설치하면 돼요.</p>
+      <ol>
+        <li><a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a> 접속 → <strong>LTS</strong> 버전 다운로드</li>
+        <li>설치 마법사에서 모두 "Next" → "Install" → "Finish"</li>
+        <li>설치 확인: <strong>PowerShell</strong>을 열고 아래를 입력</li>
+      </ol>
+      <pre><code>node --version</code></pre>
+      <p><code>v20.x.x</code> 같은 숫자가 나오면 성공!</p>
+
+      <div class="warn"><strong>중요:</strong> 윈도우에서는 반드시 <strong>PowerShell</strong>을 사용합니다. CMD(명령 프롬프트)가 아닙니다! 작업표시줄 검색에 "PowerShell" 을 치면 나옵니다.</div>
+
+      <h3>Step 2. Claude Code 설치</h3>
+      <p>PowerShell에 한 줄만 입력하면 됩니다.</p>
+      <pre><code>npm install -g @anthropic-ai/claude-code</code></pre>
+
+      <h3>Step 3. 첫 실행</h3>
+      <p>설치가 끝나면 그대로 이렇게 쳐봅니다.</p>
+      <pre><code>claude</code></pre>
+      <p>환영 화면이 나오면 성공입니다. <strong>여기까지 오면 박수!</strong></p>
+
+      <h3>Hello World — 자기 일과 살짝 연결</h3>
+      <ul>
+        <li><strong>작가님:</strong> <code>"오늘 워크숍 참가 후기를 3문단으로 써줘. 톤은 친근하게."</code></li>
+        <li><strong>트레이너님:</strong> <code>"오늘 시작한 새로운 도구 워크숍 후기를 인스타 캡션 스타일로 써줘. 해시태그도 포함해서."</code></li>
+      </ul>
+      <p>각자 결과를 옆 사람한테 보여주세요. 첫 공유 모먼트입니다.</p>
+
+      <div class="teacher">
+        <strong>이 35분이 워크숍의 운명을 결정합니다.</strong>
+        <ul>
+          <li>(15분) 학습자 한 명씩 옆에 붙어서 설치. 다른 학습자는 사용 사례 메모를 적어둔다.</li>
+          <li>(5분) 두 사람이 동시에 <code>claude</code> 입력 → 환영 화면 → <strong>박수!</strong> → "여기가 제일 큰 산이었어요. 지금부터는 쉽습니다" 선언.</li>
+          <li>(10분) Hello World. 두 사람이 거의 동시에 끝나도록 페이스 조절.</li>
+        </ul>
+        <p><strong>윈도우 설치 시 흔한 막힘 (자세한 대응은 <a href="#trouble">트러블슈팅</a> 참조)</strong></p>
+        <ul>
+          <li>PowerShell 여는 법 모름 → 작업표시줄 검색에 "PowerShell" 입력</li>
+          <li><code>node --version</code>이 안 됨 → Node.js 설치 안 됐거나 PowerShell을 설치 전에 열어둔 것. PowerShell 닫고 재시작.</li>
+          <li><code>npm</code>에서 권한 오류 → 관리자 권한 PowerShell로 재시도 (아래 트러블슈팅 참조)</li>
+          <li>설치 중 빨간 글씨(WARN) → 대부분 무시해도 됨. ERROR가 아니면 OK.</li>
+        </ul>
+        <p><strong>강사 멘트 (막힐 때):</strong></p>
+        <blockquote><p>"지금 막히신 거 진짜 좋은 거예요. 이 막힘을 한 번 겪어두면 혼자 할 때도 안 무서워져요. 자, 같이 해결해봅시다."</p></blockquote>
+        <div class="warn"><strong>절대 "쉬워요"라고 말하지 말 것.</strong> 한 명이 빨리 끝나면 "두 번째 버전 다른 톤으로 만들어보세요"로 시간 벌기.</div>
+      </div>
+    </section>
+
+    <!-- 75-85 휴식 -->
+    <section class="block" id="break1">
+      <span class="meta">80–90분 · 휴식</span>
+      <h2>10분 쉬어요 ☕</h2>
+      <p>음료, 화장실, 가벼운 대화. 머리를 잠깐 비웁니다.</p>
+      <div class="teacher">
+        <p>강사는 이 시간에 두 학습자의 '아 이거 누가 대신…' 메모를 다시 보고 90분 실습 프로젝트를 머릿속으로 한 번 더 정리한다.</p>
+        <p>학습자끼리 자연스럽게 얘기하도록 두기 (개입 X).</p>
+      </div>
+    </section>
+
+    <!-- 85-110 하네스 -->
+    <section class="block" id="harness">
+      <span class="meta">90–110분 · 하네스 엔지니어링</span>
+      <h2>Claude를 내 동료로 만드는 법</h2>
+
+      <h3>AI를 쓰는 기술은 이렇게 진화하고 있어요</h3>
+      <table>
+        <tr><th>시대</th><th>이름</th><th>비유</th></tr>
+        <tr>
+          <td>2023</td>
+          <td><strong>프롬프트 엔지니어링</strong></td>
+          <td>손님이 셰프에게 <strong>주문을 잘 하는</strong> 기술</td>
+        </tr>
+        <tr>
+          <td>2024–25</td>
+          <td><strong>에이전트 엔지니어링</strong></td>
+          <td>셰프에게 <strong>주방 도구를 맡기는</strong> 기술</td>
+        </tr>
+        <tr>
+          <td>2025–26</td>
+          <td><strong>하네스 엔지니어링</strong></td>
+          <td>여러 셰프로 구성된 <strong>주방 전체를 설계</strong>하는 기술</td>
+        </tr>
+      </table>
+
+      <blockquote>
+        <p>Claude는 똑똑한 인턴이라고 생각해보세요. 매번 처음부터 가르치면 지치겠죠? <strong>하네스</strong>는 이 인턴한테 "너는 우리 회사에서 이런 일을 이렇게 하는 사람이야"라고 미리 정리해주는 매뉴얼 같은 거예요.</p>
+      </blockquote>
+
+      <p><strong>놀라운 사실:</strong> 같은 AI 모델이라도 하네스 설계만 개선하면 성능이 <strong>+26% 향상</strong>된다는 연구가 있어요. 더 좋은 AI를 기다리는 것보다, 더 좋은 환경을 만들어주는 게 먼저입니다.</p>
+
+      <h3>하네스 = 3가지 재료 (이름은 안 외워도 됨)</h3>
+      <table>
+        <tr><th>재료</th><th>비유</th><th>하는 일</th></tr>
+        <tr>
+          <td><strong>CLAUDE.md</strong></td>
+          <td>인턴한테 주는 "우리 회사 안내서"</td>
+          <td>내가 누구고, 뭘 좋아하고, 어떻게 일하는지 알려줌</td>
+        </tr>
+        <tr>
+          <td><strong>Skills</strong></td>
+          <td>"이런 일은 이렇게 해라" 매뉴얼</td>
+          <td>특정 작업의 절차·규칙을 정리해둠</td>
+        </tr>
+        <tr>
+          <td><strong>Agents</strong></td>
+          <td>"이 일은 저 동료한테 시켜라" 역할 분담</td>
+          <td>전문가를 여러 명 두고 역할 배분</td>
+        </tr>
+      </table>
+
+      <p>오늘 우리가 집중할 건 <strong>CLAUDE.md</strong> 입니다. 5–10줄짜리 파일 하나로 Claude가 나를 아는 동료로 바뀌는 경험을 해볼 거예요.</p>
+
+      <h3>예시: 작가님용 CLAUDE.md</h3>
+      <pre><code># 나의 글쓰기 스타일
+- 베스트셀러 에세이 작가
+- 톤: 친근하고 따뜻함, 거리감 없는 반말 X
+- 자주 쓰는 단어: ...
+- 절대 쓰지 않는 단어: ...
+- 글 마지막은 짧은 질문으로 끝낸다</code></pre>
+
+      <p>이 한 파일이 있을 때와 없을 때, Claude가 같은 부탁에 어떻게 다르게 답하는지 강사가 보여드릴 거예요.</p>
+
+      <h3>더 깊이 알고 싶다면?</h3>
+      <p>하네스 엔지니어링의 5가지 디자인 패턴, 실제 사례, 에이전트 팀 구성법 등을 정리한 교안이 있어요. 관심 있으면 같이 살펴봐요.</p>
+      <p style="text-align:center;margin:18px 0">
+        <a href="https://revfactory.github.io/ai-trend-onboarding/ch6.html" target="_blank" rel="noopener"
+           style="display:inline-block;padding:14px 28px;background:var(--accent);color:#fff;border-radius:10px;font-weight:700;font-size:16px;">
+          하네스 엔지니어링 교안 보기 →
+        </a>
+      </p>
+
+      <div class="teacher">
+        <strong>두 번째 라이브 시연 (25분 배분)</strong>
+        <ol>
+          <li>(5분) 셰프 비유 + 3단계 진화 표 → "우리는 오늘 두 번째 + 세 번째 단계를 한꺼번에 체험하는 거예요"</li>
+          <li>(5분) 하네스 3가지 재료 설명. 오늘은 CLAUDE.md에 집중한다고 안내. 나머지(Skills, Agents)는 "관심 있으면 교안 링크에서 더 볼 수 있어요"로 유도.</li>
+          <li>(15분) 미리 만들어둔 작가님용 CLAUDE.md를 보여주고 동일 부탁의 결과를 나란히 비교 — "어 이거 진짜 작가님 스타일인데?" wow #2</li>
+        </ol>
+        <p><strong>교안 링크 활용법:</strong> 시연 끝나고 실습 전에 "이 링크는 나중에 혼자 읽어보셔도 좋고, 지금 잠깐 같이 훑어볼까요?"로 학습자 반응 보고 결정. 관심 있으면 5분 정도 같이 스크롤하면서 핵심 그림(오케스트라 비유, 팬아웃/팬인 다이어그램)만 짚어준다.</p>
+        <p><strong>강사 멘트:</strong></p>
+        <blockquote><p>"지금부터 50분 동안 여러분이 하실 일이 정확히 이거예요. 자기만의 작은 하네스 하나를 만들어서, Claude가 여러분을 알고 일하게 만드는 거. 어렵지 않아요."</p></blockquote>
+        <div class="warn"><strong>주의:</strong> 교안 링크를 오래 보여주면 실습 시간이 줄어든다. 학습자가 "나중에 보겠다"고 하면 바로 실습으로 넘어갈 것. 핵심은 CLAUDE.md 체험이지 이론이 아님.</div>
+      </div>
+    </section>
+
+    <!-- 110-160 실습 -->
+    <section class="block" id="practice">
+      <span class="meta">110–160분 · 자기 프로젝트 실습 (50분)</span>
+      <h2>이제 진짜 자기 것을 만들어봅시다</h2>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="writer">✍️ 작가님</button>
+        <button class="tab-btn" data-tab="trainer">💪 트레이너님</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-writer">
+        <h3>내 톤으로 글 써주는 글쓰기 파트너 만들기</h3>
+        <p><strong>최종 결과물:</strong> <code>~/writing/</code> 폴더 + <code>CLAUDE.md</code> (작가님 스타일 가이드) + 예시 글 1편</p>
+
+        <table>
+          <tr><th>시간</th><th>할 일</th><th>입력할 프롬프트 예시</th></tr>
+          <tr>
+            <td>0–10분</td>
+            <td>폴더 + CLAUDE.md 만들기</td>
+            <td><code>"내 홈에 'writing'이라는 폴더를 만들고, 그 안에 'CLAUDE.md'라는 파일을 만들어줘. 내가 글쓰기 스타일을 적을 거야."</code></td>
+          </tr>
+          <tr>
+            <td>10–25분</td>
+            <td>첫 글 써보기 → 어색한 부분 발견 → CLAUDE.md 한 줄 추가 → 다시 써달라기</td>
+            <td><code>"이 주제로 1500자 에세이를 써줘: [작가님이 직접 고른 주제]"</code></td>
+          </tr>
+          <tr>
+            <td>25–40분</td>
+            <td>팟캐스트 쇼노트 자동화 미니 실험</td>
+            <td><code>"내가 30분 분량 팟캐스트 한 회 녹음을 했다고 가정하고, 가상의 에피소드 제목과 5문장짜리 쇼노트를 내 톤으로 써줘. 마지막에 청취자 질문 1개로 끝내줘."</code></td>
+          </tr>
+          <tr>
+            <td>40–50분</td>
+            <td>CLAUDE.md 다듬기 + 다음 한 걸음 알려드림</td>
+            <td>—</td>
+          </tr>
+        </table>
+
+        <div class="teacher">
+          <strong>막히면 강사 힌트</strong>
+          <ul>
+            <li>"톤이 어색해요" → "어떤 단어가 어색했어요? 그 단어를 CLAUDE.md에 '안 쓰는 단어'로 추가해봅시다"</li>
+            <li>"글이 너무 길어요" → "Claude한테 '이 글을 절반으로 줄여줘'라고 다시 말해봅시다"</li>
+          </ul>
+          <p><strong>Wow 모먼트:</strong> 25–40분 구간. "이거 진짜 내 팟캐스트 같아"라는 반응이 나오는 순간.</p>
+          <p><strong>백업 프로젝트:</strong> 작가님 책 1권 목차로 챕터별 핵심 메시지를 한 문장 요약 마크다운 만들기</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-trainer">
+        <h3>회원별 운동 프로그램 만들어주는 PT 어시스턴트</h3>
+        <p><strong>최종 결과물:</strong> <code>~/pt-assistant/</code> 폴더 + <code>CLAUDE.md</code> (코칭 스타일·기본 원칙) + <code>members/</code> 폴더 + 회원 1명의 1주일 운동 프로그램</p>
+
+        <table>
+          <tr><th>시간</th><th>할 일</th><th>입력할 프롬프트 예시</th></tr>
+          <tr>
+            <td>0–10분</td>
+            <td>폴더 구조 + CLAUDE.md 만들기 (자격증·코칭 철학·안 시키는 운동·시간 분배)</td>
+            <td><code>"내 홈에 'pt-assistant' 폴더 만들고, 그 안에 CLAUDE.md, members 폴더 만들어줘"</code></td>
+          </tr>
+          <tr>
+            <td>10–20분</td>
+            <td>가상의 회원 1명 만들기</td>
+            <td><code>"members 폴더 안에 'kim-yujin.md' 파일 만들고, 가상의 30대 여성 회원 정보를 넣어줘 — 운동 목표는 체지방 감량, 일주일에 2회 PT, 무릎이 살짝 약함, 운동 경력 6개월"</code></td>
+          </tr>
+          <tr>
+            <td>20–40분</td>
+            <td>1주일 프로그램 자동 생성 → 어색한 부분 발견 → CLAUDE.md 보강 → 다시 짜달라기</td>
+            <td><code>"kim-yujin 회원의 이번 주 PT 2회 운동 프로그램을 짜줘. 회원 정보랑 내 코칭 원칙을 참고해서. 표 형식으로 운동 이름, 세트, 휴식시간 다 들어가게."</code></td>
+          </tr>
+          <tr>
+            <td>40–50분</td>
+            <td>인스타 콘텐츠 보너스</td>
+            <td><code>"오늘 만든 운동 프로그램 중 하나를 골라서, 인스타그램 캡션을 내 PT샵 톤으로 써줘. 운동 효과 + 주의점 + 해시태그 포함"</code></td>
+          </tr>
+        </table>
+
+        <div class="teacher">
+          <strong>막히면 강사 힌트</strong>
+          <ul>
+            <li>"프로그램이 너무 빡세요" → "CLAUDE.md에 '회원 운동 강도는 부드럽게'라고 적어봅시다"</li>
+            <li>"회원 정보를 매번 설명하기 귀찮아요" → "그래서 members 폴더에 파일로 저장한 거예요. 다음엔 회원 이름만 말해도 알아요"</li>
+          </ul>
+          <p><strong>Wow 모먼트:</strong> 20–40분 구간. "내가 안 가르쳐줘도 알아서 무릎 약한 사람 피해가는 거구나" + "운동도 짜고 마케팅도 해주네"</p>
+          <p><strong>백업 프로젝트:</strong> 1주일 식단 추천 마크다운 생성기 (회원 알레르기·선호 입력 → 식단표 출력)</p>
+        </div>
+      </div>
+
+      <div class="teacher">
+        <strong>실습 50분 동안 강사 원칙</strong>
+        <ul>
+          <li>학습자가 직접 프롬프트를 입력. <strong>강사가 키보드 잡지 말 것.</strong></li>
+          <li>막히면 답을 주지 말고 질문으로 유도: "Claude한테 뭐라고 물어보면 좋을까요?"</li>
+          <li>한 사람한테 5분 이상 붙어있지 말 것.</li>
+          <li>30분 지점에 한 번 모여서 <strong>중간 공유 (3분)</strong> — 각자 한 줄 요약. 자극받게 하기.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 160-180 마무리 -->
+    <section class="block" id="closing">
+      <span class="meta">160–180분 · 공유 + 마무리</span>
+      <h2>오늘 만든 거 자랑해봐요</h2>
+
+      <h3>(10분) 결과물 발표</h3>
+      <ul>
+        <li>각자 5분씩 화면 공유</li>
+        <li>"이걸 만들면서 제일 신기했던 순간" 한 마디</li>
+        <li>📸 사진/스크린샷 기념 찍기</li>
+      </ul>
+
+      <h3>(5분) 핸드아웃 함께 보기</h3>
+      <p>오늘 배운 명령 5개, 막혔을 때 시도할 3가지, 다음 한 걸음을 함께 짚어봅니다. → <a href="#handout">핸드아웃 보기</a></p>
+
+      <h3>(5분) 가져갈 한 문장</h3>
+      <blockquote>
+        <p>각자 한 문장으로 "오늘 워크숍에서 가져가는 한 가지"</p>
+      </blockquote>
+      <p>강사가 받아 적어서 1주일 후 카톡으로 다시 보내드릴 거예요. 1주일 안에 막히면 부담 없이 연락 주세요. <strong>막힘을 같이 푸는 게 진짜 학습입니다.</strong></p>
+
+      <div class="teacher">
+        <p><strong>강사 마무리 멘트:</strong></p>
+        <blockquote><p>"오늘 여러분이 만든 거, 작아 보여도 진짜 큰 거예요. 6개월 전 저는 이거 못 했어요. 오늘 여러분은 했어요. 다음 주에 카톡으로 안부 물을게요."</p></blockquote>
+        <p><strong>강사 자기 점검 (워크숍 직후)</strong></p>
+        <ol>
+          <li>두 학습자가 각자 손에 든 산출물이 있는가?</li>
+          <li>두 사람 모두 적어도 한 번은 "와" 했는가?</li>
+          <li>두 사람 모두 다음 한 걸음을 알고 돌아갔는가?</li>
+          <li>내가 키보드를 잡은 적이 있는가?</li>
+          <li>내가 "쉬워요"라고 말한 적 있는가?</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 트러블슈팅 -->
+    <section class="block" id="trouble">
+      <span class="meta">📋 트러블슈팅</span>
+      <h2>막힐 때 보는 인덱스</h2>
+
+      <h3>윈도우 설치 관련</h3>
+      <table>
+        <tr><th>증상</th><th>원인</th><th>해결법</th></tr>
+        <tr>
+          <td><code>'node'은(는) 인식할 수 없는 명령입니다</code></td>
+          <td>Node.js 미설치 또는 PATH 미반영</td>
+          <td>
+            1. <a href="https://nodejs.org" target="_blank">nodejs.org</a> → LTS 다운로드 → 설치<br>
+            2. 설치 시 <strong>"Add to PATH" 체크박스 반드시 체크</strong><br>
+            3. <strong>PowerShell을 닫고 새로 열기</strong> (이미 열려있던 건 PATH를 모름)
+          </td>
+        </tr>
+        <tr>
+          <td><code>'npm'은(는) 인식할 수 없는 명령입니다</code></td>
+          <td>Node.js 설치 후 PowerShell을 재시작하지 않음</td>
+          <td>PowerShell 완전히 닫고 → 새 PowerShell 열기. 그래도 안 되면 PC 재부팅.</td>
+        </tr>
+        <tr>
+          <td>npm install 시 <strong>EPERM / EACCES</strong> 권한 오류</td>
+          <td>관리자 권한 필요</td>
+          <td>
+            1. 작업표시줄에서 "PowerShell" 검색<br>
+            2. <strong>"관리자 권한으로 실행"</strong> 클릭<br>
+            3. 다시 <code>npm install -g @anthropic-ai/claude-code</code> 입력
+          </td>
+        </tr>
+        <tr>
+          <td>npm install 시 <strong>빨간 WARN</strong> 메시지</td>
+          <td>선택적 의존성 경고 (무해)</td>
+          <td><strong>무시해도 됩니다.</strong> WARN은 경고일 뿐. ERROR가 아니면 설치 성공입니다.</td>
+        </tr>
+        <tr>
+          <td><code>'claude'은(는) 인식할 수 없는 명령입니다</code></td>
+          <td>npm 글로벌 경로가 PATH에 없음</td>
+          <td>
+            1. PowerShell에서 <code>npm config get prefix</code> 입력 → 나오는 경로를 확인<br>
+            2. 그 경로를 시스템 환경변수 PATH에 추가:<br>
+            &nbsp;&nbsp; 설정 → 시스템 → 정보 → 고급 시스템 설정 → 환경 변수 → Path → 편집 → 위 경로 추가<br>
+            3. PowerShell 재시작<br>
+            <strong>빠른 우회:</strong> <code>npx @anthropic-ai/claude-code</code>로 바로 실행
+          </td>
+        </tr>
+        <tr>
+          <td>CMD(명령 프롬프트)에서 안 됨</td>
+          <td>Claude Code는 PowerShell 필요</td>
+          <td>
+            CMD (검은 창) 대신 <strong>PowerShell (파란 창)</strong>을 사용.<br>
+            구분법: 창 제목에 "PowerShell"이라고 써있어야 합니다.
+          </td>
+        </tr>
+        <tr>
+          <td>Windows Defender/보안 프로그램이 차단</td>
+          <td>실행 정책 제한</td>
+          <td>
+            관리자 PowerShell에서:<br>
+            <code>Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</code><br>
+            "Y" 입력 후 Enter → 다시 시도
+          </td>
+        </tr>
+        <tr>
+          <td>SSL/인증서 오류 (<code>UNABLE_TO_GET_ISSUER_CERT</code>)</td>
+          <td>회사/학교 네트워크 프록시</td>
+          <td>
+            모바일 핫스팟으로 전환 후 재시도. 대부분 해결됨.
+          </td>
+        </tr>
+      </table>
+
+      <h3>Claude Code 사용 중</h3>
+      <table>
+        <tr><th>증상</th><th>원인</th><th>해결법</th></tr>
+        <tr>
+          <td>Claude가 엉뚱한 폴더에 파일 만듦</td>
+          <td>현재 디렉토리 모름</td>
+          <td>프롬프트에 "내 바탕화면에" 또는 "C:\Users\내이름\Desktop에" 구체적으로 경로 명시</td>
+        </tr>
+        <tr>
+          <td>한글 깨짐 / 특수문자 오류</td>
+          <td>윈도우 기본 인코딩</td>
+          <td>PowerShell 상단에서 <code>$OutputEncoding = [System.Text.Encoding]::UTF8</code> 입력. 또는 무시하고 진행 (파일 자체는 보통 정상).</td>
+        </tr>
+        <tr>
+          <td>경로에 한글이 포함돼서 오류</td>
+          <td>윈도우 사용자 이름이 한글</td>
+          <td>"바탕화면에 만들어줘" 대신 <code>C:\temp\</code> 같은 영문 경로 사용</td>
+        </tr>
+        <tr>
+          <td>인증/로그인 오류</td>
+          <td>API 키 또는 계정 문제</td>
+          <td>사전 안내대로 재로그인. 안 되면 <code>claude logout</code> → <code>claude</code> 다시</td>
+        </tr>
+        <tr>
+          <td>결과가 영어로 나옴</td>
+          <td>명시 안 함</td>
+          <td>"한국어로" 한마디 추가</td>
+        </tr>
+        <tr>
+          <td>응답이 중간에 잘림</td>
+          <td>네트워크 불안정 또는 긴 응답</td>
+          <td>"계속해줘" 또는 "이어서 써줘" 입력</td>
+        </tr>
+      </table>
+
+      <h3>워크숍 진행 관련</h3>
+      <table>
+        <tr><th>상황</th><th>대응</th></tr>
+        <tr><td>학습자 좌절</td><td>강사 본인 6개월 전 얘기 꺼내기. <strong>절대 "쉬워요"라고 말하지 말 것.</strong></td></tr>
+        <tr><td>와이파이 끊김</td><td>모바일 핫스팟 미리 켜둠</td></tr>
+        <tr><td>한 명만 너무 빨리 끝남</td><td>"두 번째 버전 다른 톤으로 만들어보세요"</td></tr>
+        <tr><td>설치에서 30분 넘게 막힘</td><td>강사 노트북 빌려줌. 설치는 워크숍 후 1:1로 따로.</td></tr>
+      </table>
+    </section>
+
+    <!-- 핸드아웃 -->
+    <section class="block" id="handout">
+      <span class="meta">📄 핸드아웃 · 학습자용 한 장 요약</span>
+      <h2>오늘의 한 장 요약</h2>
+
+      <h3>Claude Code가 뭐였더라?</h3>
+      <blockquote>
+        <p>ChatGPT가 채팅창에서 답하는 친구라면, <strong>Claude Code는 내 컴퓨터 안에 들어와서 직접 일을 해주는 친구</strong>입니다. 폴더를 만들고, 파일을 고치고, 글을 써주고, 자료를 정리합니다.</p>
+      </blockquote>
+
+      <h3>오늘 손에 익힌 명령 5개</h3>
+      <ol>
+        <li><code>claude</code> — 시작하기</li>
+        <li><code>"~~ 폴더 만들고 ~~ 파일 만들어줘"</code> — 파일 생성</li>
+        <li><code>"이 글을 ~~ 톤으로 다시 써줘"</code> — 내 스타일로 변경</li>
+        <li><code>"CLAUDE.md에 ~~ 한 줄 추가해줘"</code> — 하네스 업데이트</li>
+        <li><code>Ctrl+C</code> 두 번 — 빠져나오기</li>
+      </ol>
+
+      <h3>핵심 개념: 하네스</h3>
+      <ul>
+        <li><strong>CLAUDE.md</strong> = Claude한테 주는 "나는 누구고 어떻게 일하는 사람인지" 안내서</li>
+        <li>처음엔 5–10줄로 시작. 막힐 때마다 한 줄씩 추가.</li>
+        <li>이게 쌓일수록 Claude가 점점 "내 동료"가 됩니다.</li>
+      </ul>
+
+      <h3>막혔을 때 시도할 3가지 (순서대로)</h3>
+      <ol>
+        <li><strong>더 구체적으로 다시 말해보기</strong> — 사람한테 시킬 때처럼</li>
+        <li><strong>새 대화로 다시 시작</strong> (<code>Ctrl+C</code> 두 번 → 다시 <code>claude</code>)</li>
+        <li><strong>강사한테 카톡</strong> — 막힘은 학습입니다</li>
+      </ol>
+
+      <h3>다음 한 걸음 (개인 맞춤)</h3>
+      <ul>
+        <li><strong>작가님:</strong> 다음 팟캐스트 녹음 끝나면 받아쓰기 파일을 <code>writing/</code> 폴더에 넣고 "오늘 톤으로 쇼노트 써줘"라고 시켜보기</li>
+        <li><strong>트레이너님:</strong> 진짜 회원 1명을 골라서 <code>members/</code> 폴더에 정보 파일 만들고, 다음 PT 프로그램 짜달라고 시켜보기</li>
+      </ul>
+
+      <h3>절대 잊지 말 것</h3>
+      <blockquote>
+        <p><strong>코드 한 줄 안 쓰고도 컴퓨터에 일을 시키는 시대가 왔습니다. 오늘 여러분이 직접 해봤잖아요.</strong></p>
+      </blockquote>
+    </section>
+
+    <div class="footer">
+      조이풀 클래스 — 바이브코딩 해보기
+    </div>
+  </main>
+</div>
+
+<script>
+  // 강사 모드 토글
+  const check = document.getElementById('teacherCheck');
+  const toggle = document.getElementById('teacherToggle');
+  const KEY = 'workshop-teacher-mode';
+  if (localStorage.getItem(KEY) === '1') {
+    check.checked = true;
+    document.body.classList.add('teacher-mode');
+    toggle.classList.add('on');
+  }
+  check.addEventListener('change', () => {
+    document.body.classList.toggle('teacher-mode', check.checked);
+    toggle.classList.toggle('on', check.checked);
+    localStorage.setItem(KEY, check.checked ? '1' : '0');
+  });
+
+  // 사이드바 active
+  const navLinks = document.querySelectorAll('nav.side a');
+  const sections = document.querySelectorAll('section.block');
+  function setActive() {
+    let current = sections[0].id;
+    const y = window.scrollY + 120;
+    sections.forEach(s => { if (s.offsetTop <= y) current = s.id; });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', setActive);
+  setActive();
+
+  // 부드러운 스크롤
+  navLinks.forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        window.scrollTo({ top: el.offsetTop - 20, behavior: 'smooth' });
+      }
+    });
+  });
+
+  // 실습 탭
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-panel').forEach(p => {
+        p.classList.toggle('active', p.id === 'tab-' + tab);
+      });
+    });
+  });
+</script>
+</body>
+</html>
